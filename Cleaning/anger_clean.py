@@ -1,3 +1,4 @@
+#tweet preprocessor 
 # The main package to help us with our text analysis
 from textblob import TextBlob
 
@@ -10,7 +11,7 @@ import re
 # For sorting dictionaries
 import operator
 
-
+import codecs
 # For plotting results
 import numpy as np
 import matplotlib.mlab as mlab
@@ -25,14 +26,16 @@ final = []
 def strip_non_ascii(string):
     ''' Returns the string without non ASCII characters'''
     stripped = (c for c in string if 0 < ord(c) < 127)
+    #stripped = string.decode("utf-8").encode("ascii", "ignore")
     return ''.join(stripped)
+    #return stripped
 
 def clean_tweet(tweet):
     '''
     Utility function to clean the text in a tweet by removing 
     links and special characters using regex.
     '''
-    return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
+    return ' '.join(re.sub(r'(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)', " ", tweet).split())
 
 # LOAD AND CLEAN DATA
 
@@ -50,7 +53,7 @@ def clean_tweet(tweet):
 # clean:    The preprocessed string of characters
 # TextBlob: The TextBlob object, created from the 'clean' string
 
-with open('frustration.csv', 'r') as csvfile:
+with open('test.csv', 'r',encoding="ascii") as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     #reader.next()
     for row in reader:
@@ -61,10 +64,11 @@ with open('frustration.csv', 'r') as csvfile:
        # tweet['username'] = row[1]
 
         # Ignore retweets
-        if re.match(r'^RT.*', tweet['orig']):
+        if re.match(r'^rt.*', tweet['orig']):
             continue
         print("Original Tweet : " + tweet['orig'])
         tweet['clean'] = tweet['orig']
+       # tweet['clean'] = tweet['clean'].decode("ascii", "ignore")
 
         # Remove all non-ascii characters
         tweet['clean'] = strip_non_ascii(tweet['clean'])
@@ -73,8 +77,11 @@ with open('frustration.csv', 'r') as csvfile:
         tweet['clean'] = tweet['clean'].lower()
 
         # Remove URLS. (I stole this regex from the internet.)
+        #tweet['clean'] = re.sub(r'\b[a-z]\\*',"",tweet['clean'])
+        tweet['clean'] = re.sub(r'([a-zA-Z0-9]*\\[a-zA-Z0-9]*)+', "", tweet['clean'])
         tweet['clean'] = re.sub(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', '', tweet['clean'])
         # Fix classic tweet lingo
+        tweet['clean'] = re.sub(r'\b(rt)\b', '', tweet['clean'])
         tweet['clean'] = re.sub(r'\bthats\b', 'that is', tweet['clean'])
         tweet['clean'] = re.sub(r'\bthat\'s\b', 'that is', tweet['clean'])
         tweet['clean'] = re.sub(r'\bive\b', 'i have', tweet['clean'])
@@ -97,7 +104,8 @@ with open('frustration.csv', 'r') as csvfile:
         tweet['clean'] = re.sub(r'\bno+\b', 'no', tweet['clean'])
         tweet['clean'] = re.sub(r'\bcoo+\b', 'cool', tweet['clean'])
         tweet['clean'] = re.sub(r'\bn\b', 'in', tweet['clean'])
-        tweet['clean'] = re.sub(r'/\s[\w\/]', '',tweet['clean'])
+        tweet['clean'] = re.sub(r'[^o\x00-\x7F]+', '', tweet['clean'])       
+
         # Emoticons?
         # NOTE: Turns out that TextBlob already handles emoticons well, so the
         # following is not actually needed.
@@ -113,24 +121,25 @@ with open('frustration.csv', 'r') as csvfile:
         # Create textblob object
         tweet['TextBlob'] = TextBlob(tweet['clean'])
         tweet['clean2'] = clean_tweet(tweet['clean'])
-        tweet['clean2'] = re.sub(r'\bb \b', '', tweet['clean2'])
+        #tweet['clean2'] = re.sub(r"\\\w+", '', tweet['clean2'])
         tweet['TextBlob2'] = TextBlob(tweet['clean2'])
 
         # Correct spelling (WARNING: SLOW)
         #tweet['TextBlob'] = tweet['TextBlob'].correct()
 
-        print("Cleaned Tweet : " + tweet['clean'])
-        print("TextBlobbed Tweet : ")
-        print(tweet['TextBlob'])
-        print("Cleaned Tweet 2: " + tweet['clean2'])
-        print("TextBlobbed Tweet 2 : ")
+      #  print("Cleaned Tweet : " + tweet['clean'])
+      #  print("TextBlobbed Tweet : ")
+      #  print(tweet['TextBlob'])
+      # print("Cleaned Tweet 2: " + tweet['clean2'])
+      #  print("TextBlobbed Tweet 2 : ")
         print(tweet['TextBlob2'])
         a = str(tweet['TextBlob2'])
         print("a: "+a)
         final.append(a)
         tweets.append(tweet)
 print(final)
-with open("frustration_out.csv", "w") as output:
+with open("test_out.csv", "w") as output:
     writer = csv.writer(output, lineterminator='\n')
     for val in final:
         writer.writerow([val])
+        

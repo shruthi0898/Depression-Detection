@@ -50,7 +50,7 @@ def clean_tweet(tweet):
 # clean:    The preprocessed string of characters
 # TextBlob: The TextBlob object, created from the 'clean' string
 
-with open('frustration.csv', 'r') as csvfile:
+with open('sad.csv', 'r') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     #reader.next()
     for row in reader:
@@ -130,7 +130,7 @@ with open('frustration.csv', 'r') as csvfile:
         final.append(a)
         tweets.append(tweet)
 print(final)
-with open("frustration_out.csv", "w") as output:
+with open("sad_out.csv", "w") as output:
     writer = csv.writer(output, lineterminator='\n')
     for val in final:
         writer.writerow([val])
